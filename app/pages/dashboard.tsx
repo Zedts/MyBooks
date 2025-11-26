@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ArrowRight, BookOpen, Sparkles, TrendingUp, Users, ChevronRight, Menu, X, LogIn, UserPlus } from 'lucide-react';
-import LogoLoop from '@/src/component/LogoLoop';
+import LogoLoop from '@/src/reactbits.dev/LogoLoop';
 import { AuthModal } from '@/src/components/modals/AuthModal';
 import { useModal } from '@/src/hooks/useModal';
 
