@@ -1,11 +1,16 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { ArrowRight, BookOpen, Sparkles, TrendingUp, Users, Search, ChevronRight } from 'lucide-react';
+import { ArrowRight, BookOpen, Sparkles, TrendingUp, Users, ChevronRight, Menu, X, LogIn, UserPlus } from 'lucide-react';
 import LogoLoop from '@/src/component/LogoLoop';
+import { AuthModal } from '@/src/components/modals/AuthModal';
+import { useModal } from '@/src/hooks/useModal';
 
 export default function Dashboard() {
+  const { isOpen, defaultTab, openLogin, openRegister, close } = useModal();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   useEffect(() => {
     // Intersection observer for scroll animations
     const observer = new IntersectionObserver(
@@ -54,24 +59,89 @@ export default function Dashboard() {
           </a>
           
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-400">
-            <a href="#collection" className="hover:text-white transition-colors">Collection</a>
-            <a href="#" className="hover:text-white transition-colors">Categories</a>
-            <a href="#" className="hover:text-white transition-colors">Curators</a>
-            <a href="#" className="hover:text-white transition-colors">About</a>
+            <a href="#collection" className="hover:text-white transition-colors cursor-pointer">Collection</a>
+            <a href="#collection" className="hover:text-white transition-colors cursor-pointer">Categories</a>
+            <a href="#currators" className="hover:text-white transition-colors cursor-pointer">Curators</a>
+            <a href="#footer" className="hover:text-white transition-colors cursor-pointer">About</a>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <Search className="w-5 h-5" />
-            </button>
-            <a 
-              href="#" 
-              className="hidden sm:flex items-center gap-2 px-5 py-2 bg-white text-black font-medium rounded-lg hover:bg-neutral-200 transition-colors"
+          <div className="flex items-center gap-3">
+            {/* Desktop Auth Buttons */}
+            <button
+              onClick={openLogin}
+              className="hidden sm:flex items-center gap-2 px-5 py-2 bg-white text-black font-medium rounded-lg hover:bg-neutral-200 transition-all cursor-pointer"
             >
               Sign In
-            </a>
+            </button>
+            <button
+              onClick={openRegister}
+              className="hidden sm:flex items-center gap-2 px-5 py-2 bg-white/10 backdrop-blur-xl text-white font-medium rounded-lg border border-white/20 hover:bg-white/20 transition-all cursor-pointer"
+            >
+              Register
+            </button>
+
+            {/* Mobile Auth Icons */}
+            <button
+              onClick={openLogin}
+              className="sm:hidden flex items-center justify-center w-10 h-10 bg-white text-black rounded-lg hover:bg-neutral-200 transition-all cursor-pointer"
+              aria-label="Sign In"
+            >
+              <LogIn className="w-5 h-5" />
+            </button>
+            <button
+              onClick={openRegister}
+              className="sm:hidden flex items-center justify-center w-10 h-10 bg-white/10 backdrop-blur-xl text-white rounded-lg border border-white/20 hover:bg-white/20 transition-all cursor-pointer"
+              aria-label="Register"
+            >
+              <UserPlus className="w-5 h-5" />
+            </button>
+
+            {/* Burger Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden flex items-center justify-center w-10 h-10 text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer"
+              aria-label="Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-white/5 bg-neutral-950/95 backdrop-blur-xl">
+            <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-4">
+              <a
+                href="#collection"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-neutral-400 hover:text-white transition-colors py-2 cursor-pointer"
+              >
+                Collection
+              </a>
+              <a
+                href="#collection"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-neutral-400 hover:text-white transition-colors py-2 cursor-pointer"
+              >
+                Categories
+              </a>
+              <a
+                href="#currators"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-neutral-400 hover:text-white transition-colors py-2 cursor-pointer"
+              >
+                Curators
+              </a>
+              <a
+                href="#footer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-neutral-400 hover:text-white transition-colors py-2 cursor-pointer"
+              >
+                About
+              </a>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -93,19 +163,19 @@ export default function Dashboard() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto reveal-anim delay-300">
-          <a 
-            href="#collection" 
-            className="sm:w-auto hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2 font-semibold text-black bg-white w-full rounded pt-3 pr-8 pb-3 pl-8"
+          <button
+            onClick={openRegister}
+            className="sm:w-auto hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 font-semibold text-black bg-white w-full rounded pt-3 pr-8 pb-3 pl-8 cursor-pointer"
           >
             Start Reading
             <ArrowRight className="w-4 h-4" />
-          </a>
-          <a 
-            href="#" 
-            className="w-full sm:w-auto px-8 py-3 bg-white/5 border border-white/10 text-white font-medium rounded hover:bg-white/10 transition-colors flex items-center justify-center backdrop-blur-md"
+          </button>
+          <button
+            onClick={openRegister}
+            className="w-full sm:w-auto px-8 py-3 bg-white/5 border border-white/10 text-white font-medium rounded hover:bg-white/10 transition-all flex items-center justify-center backdrop-blur-md cursor-pointer"
           >
-            View Curators
-          </a>
+            Register
+          </button>
         </div>
       </header>
 
@@ -154,6 +224,7 @@ export default function Dashboard() {
                 src="/The Design of Everyday Things.png"
                 alt="The Design of Everyday Things"
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover"
               />
               <div className="absolute top-3 right-3 px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs font-medium">Design</div>
@@ -175,6 +246,7 @@ export default function Dashboard() {
                 src="/Clean Code.png"
                 alt="Clean Code"
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover"
               />
               <div className="absolute top-3 right-3 px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs font-medium">Tech</div>
@@ -196,6 +268,7 @@ export default function Dashboard() {
                 src="/Thinking, Fast and Slow.png"
                 alt="Thinking, Fast and Slow"
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover"
               />
               <div className="absolute top-3 right-3 px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs font-medium">Philosophy</div>
@@ -217,6 +290,7 @@ export default function Dashboard() {
                 src="/Refactoring UI.png"
                 alt="Refactoring UI"
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover"
               />
               <div className="absolute top-3 right-3 px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs font-medium">Design</div>
@@ -238,6 +312,7 @@ export default function Dashboard() {
                 src="/The Pragmatic Programmer.png"
                 alt="The Pragmatic Programmer"
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover"
               />
               <div className="absolute top-3 right-3 px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs font-medium">Tech</div>
@@ -259,6 +334,7 @@ export default function Dashboard() {
                 src="/Atomic Habits.png"
                 alt="Atomic Habits"
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover"
               />
               <div className="absolute top-3 right-3 px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs font-medium">Philosophy</div>
@@ -280,6 +356,7 @@ export default function Dashboard() {
                 src="/Don't Make Me Think.png"
                 alt="Don't Make Me Think"
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover"
               />
               <div className="absolute top-3 right-3 px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs font-medium">Design</div>
@@ -301,6 +378,7 @@ export default function Dashboard() {
                 src="/Zero to One.png"
                 alt="Zero to One"
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover"
               />
               <div className="absolute top-3 right-3 px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs font-medium">Tech</div>
@@ -318,7 +396,7 @@ export default function Dashboard() {
       </section>
 
       {/* Bento Grid Section */}
-      <section className="max-w-7xl mx-auto px-6 mt-32 observe-reveal relative" style={{ zIndex: 10 }}>
+      <section className="max-w-7xl mx-auto px-6 mt-32 observe-reveal relative" id="currators" style={{ zIndex: 10 }}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Large Feature Card */}
           <div className="md:col-span-2 glass-panel rounded-2xl p-10 relative overflow-hidden group cursor-pointer hover:border-indigo-500/50 transition-all">
@@ -367,7 +445,7 @@ export default function Dashboard() {
       </section>
 
       {/* Footer */}
-      <footer className="mt-32 border-t border-white/5 bg-neutral-950 pt-16 pb-8 relative" style={{ zIndex: 10 }}>
+      <footer className="mt-32 border-t border-white/5 bg-neutral-950 pt-16 pb-8 relative" id="footer" style={{ zIndex: 10 }}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             {/* Brand */}
@@ -380,13 +458,19 @@ export default function Dashboard() {
                 A curated digital library for the modern intellect. Discover timeless books on design, technology, and philosophy.
               </p>
               <div className="flex items-center gap-4">
-                <a href="#" className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-neutral-400 hover:text-white">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" /></svg>
+                <a href="https://github.com/zedts" className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-neutral-400 hover:text-white">
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.9.58.1.79-.25.79-.56v-1.96c-3.2.7-3.87-1.39-3.87-1.39-.53-1.33-1.3-1.68-1.3-1.68-1.06-.73.08-.72.08-.72 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.72 1.27 3.38.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.2-3.1-.12-.3-.52-1.52.12-3.16 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0C17.2 5.4 18.17 5.7 18.17 5.7c.64 1.64.24 2.86.12 3.16.75.81 1.2 1.84 1.2 3.1 0 4.43-2.68 5.41-5.24 5.7.43.37.81 1.1.81 2.22v3.29c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+                  </svg>
                 </a>
-                <a href="#" className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-neutral-400 hover:text-white">
+                <a href="https://www.instagram.com/royyan.hk/" className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-neutral-400 hover:text-white">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                 </a>
-                <a href="#" className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-neutral-400 hover:text-white">
+                <a href="https://www.linkedin.com/in/royyan-hikmal-kautsar-a406332b0/" className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-neutral-400 hover:text-white">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
                 </a>
               </div>
@@ -426,6 +510,9 @@ export default function Dashboard() {
           </div>
         </div>
       </footer>
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={isOpen} onClose={close} defaultTab={defaultTab} />
     </div>
   );
 }
