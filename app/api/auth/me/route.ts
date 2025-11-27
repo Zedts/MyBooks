@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
 
     const token = authHeader.split(' ')[1];
 
-    // Verify token
-    const decoded = verifyToken(token);
+    // Verify token (now async with jose)
+    const decoded = await verifyToken(token);
     if (!decoded) {
       return NextResponse.json(
         { success: false, error: 'Invalid or expired token' },

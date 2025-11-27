@@ -7,6 +7,7 @@ interface ModalProps {
   children: React.ReactNode;
   title?: string;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  disableBackdropClick?: boolean; // Prevent backdrop click from closing modal
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -15,6 +16,7 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   title,
   maxWidth = 'md',
+  disableBackdropClick = false,
 }) => {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -46,7 +48,8 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={disableBackdropClick ? undefined : onClose}
+        style={{ cursor: disableBackdropClick ? 'default' : 'pointer' }}
       />
 
       {/* Modal */}

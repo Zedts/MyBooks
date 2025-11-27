@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -19,6 +20,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   defaultTab = 'login',
 }) => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(defaultTab);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -124,27 +126,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // CRITICAL: Required to receive httpOnly cookies
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
       });
-
       const data = await response.json();
 
       if (data.success) {
-        // Store token in localStorage
+        
+        // Store token ONLY in localStorage (cookie already set by API via Set-Cookie header)
         localStorage.setItem('auth_token', data.data.token);
         localStorage.setItem('user', JSON.stringify(data.data.user));
         
-        showSuccessToast(data.message || 'Login successful!');
+        // Determine redirect path
+        const redirectPath = data.data.user.role === 'admin' ? '/pages/admin/home' : '/pages/user/home';
         
-        // Close modal and redirect
-        onClose();
+        // Show success toast
+        showSuccessToast('Login successful! Redirecting...');
+        
+        // Use router.push (Next.js navigation) - respects middleware and cookie state
+        // Short delay to ensure cookie is set and toast is visible
         setTimeout(() => {
-          window.location.href = '#';
+          router.push(redirectPath);
         }, 500);
       } else {
+        console.error('❌ Login failed:', data.error);
         showErrorToast(data.error || 'Login failed');
       }
-    } catch {
+    } catch (error) {
+      console.error('❌ Exception during login:', error);
       showErrorToast('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
@@ -165,6 +174,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // CRITICAL: Required to receive httpOnly cookies
         body: JSON.stringify({
           username: registerUsername,
           email: registerEmail,
@@ -177,16 +187,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const data = await response.json();
 
       if (data.success) {
-        // Store token in localStorage
+        // Store token ONLY in localStorage (cookie already set by API via Set-Cookie header)
         localStorage.setItem('auth_token', data.data.token);
         localStorage.setItem('user', JSON.stringify(data.data.user));
         
-        showSuccessToast(data.message || 'Account created successfully!');
+        // Determine redirect path
+        const redirectPath = data.data.user.role === 'admin' ? '/pages/admin/home' : '/pages/user/home';
         
-        // Close modal and redirect
-        onClose();
+        // Show success toast
+        showSuccessToast('Account created! Redirecting...');
+        
+        // Use router.push (Next.js navigation) - respects middleware and cookie state
         setTimeout(() => {
-          window.location.href = '#';
+          router.push(redirectPath);
         }, 500);
       } else {
         showErrorToast(data.error || 'Registration failed');
@@ -199,7 +212,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="md">
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="md" disableBackdropClick={isLoading}>
       {/* Tabs */}
       <div className="flex border-b border-white/10 mb-6">
         <button

@@ -32,3 +32,10 @@ export const showInfoToast = (message: string) => {
 export const showWarningToast = (message: string) => {
   toast.warning(message, defaultOptions);
 };
+
+export const showToast = {
+  success: showSuccessToast,
+  error: showErrorToast,
+  info: showInfoToast,
+  warning: showWarningToast,
+};

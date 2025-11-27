@@ -1,297 +1,564 @@
-# 📚 MyBooks - Fitur per Halaman & Design
+# 📚 MyBooks - Fitur per Halaman & Design (Updated)
 
 ## 👤 HALAMAN USER (Login Required)
 
-### 1. User Dashboard
-**Deskripsi:** Overview profile user.
+### 1. User Dashboard / Home
+**Deskripsi:** Dashboard utama user dengan grid buku, shopping experience profesional.
 
 **Fitur & UI:**
-- Profile card: avatar, nama, email, "Edit Profile" button
-- Stats cards (4 grid):
-  - Total orders (count)
-  - Total spending (sum)
-  - Total reviews (count)
-  - Wishlist items (count)
-- Quick links grid: "View Orders", "View Wishlist", "View Reviews", "Update Profile", "Logout"
+- Header dengan:
+  - Logo MyBooks
+  - Search bar (search books by title/author/publisher)
+  - Cart icon dengan badge (total items count)
+  - Profile dropdown menu:
+    - Avatar + nama user
+    - "Account" link → User Dashboard stats
+    - "Settings" link → Edit Profile page
+    - "Logout" button
+- Featured/Recommended books carousel section
+- "Just For You" grid section (personalized recommendations)
+- Category filter pills (Design, Tech, Philosophy, etc) dengan smooth scroll
+- Books grid display (4 kolom responsive):
+  - Book card: image, title, author, price, rating stars, "Add to Cart" button, wishlist icon
+  - Hover effect: scale 1.02, shadow enhance
+  - Category badge color-coded
+- Pagination or infinite scroll
 
 **Design Elements:**
-- Card-based layout
-- Stats dengan ikon & number display
-- Responsive grid (2 cols tablet, 4 desktop)
+- Dark theme (bg-neutral-950) consistent dengan landing page
+- Glassmorphic cards dengan backdrop blur
+- Gradient overlays sesuai kategori (indigo/emerald/orange/pink)
+- Smooth hover animations (scale 1.02, 150ms transitions)
+- Status badges: in-stock (green), low-stock (yellow), out-of-stock (gray)
+- Price highlight dengan formatting currency
+- Rating display dengan star icons
+- Mobile responsive: 1 col mobile, 2 tablet, 4 desktop
+
+**Local Storage:**
+- `cartItems`: update saat user click "Add to Cart"
+- `userId`: track user context
+- `authToken`: session validation
 
 **Database Operasi:**
-- SELECT users WHERE id=?
-- COUNT & SUM dari orders, reviews, wishlists
+- SELECT books WHERE is_active=TRUE AND deleted_at IS NULL (all books untuk grid)
+- SELECT wishlists WHERE user_id=? (untuk highlight wishlist items)
+- SELECT reviews GROUP BY book_id (untuk average rating display)
+- JOIN categories untuk kategori display
+- ORDER BY rating_average DESC / created_at DESC untuk featured section
 
 ---
 
-### 2. Edit Profile
-**Deskripsi:** Edit data profile user.
+### 2. User Account / Profile Stats
+**Deskripsi:** Dashboard overview dengan statistik user (accessible from profile dropdown).
 
 **Fitur & UI:**
-- Form fields pre-filled:
-  - Full Name (editable)
-  - Email (read-only)
-  - Username (read-only)
-  - Phone (editable)
-  - Profile image upload
-  - Password (optional, untuk change)
-  - Confirm password
+- Profile card: avatar, nama, email
+- Stats cards grid (2x2 atau 1x4 responsive):
+  - Total orders (count + link)
+  - Total spending (sum amount + currency format)
+  - Total reviews (count + link)
+  - Wishlist items (count + link)
+- Recent orders preview (last 3-5 orders mini cards)
+- "View All Orders" button
+- "Edit Profile" button (from header dropdown)
+- "Logout" button
+
+**Design Elements:**
+- Card-based layout dengan glassmorphism
+- Stats dengan ikon & big number display
+- Color-coded stats (orders=indigo, spending=emerald, reviews=orange, wishlist=pink)
+- Responsive grid (1 col mobile, 2 tablet, 4 desktop)
+
+**Database Operasi:**
+- SELECT users WHERE id=? AND deleted_at IS NULL
+- SELECT COUNT(id) FROM orders WHERE user_id=? AND status IN ('paid', 'delivered')
+- SELECT SUM(final_total) FROM orders WHERE user_id=? AND status IN ('paid', 'delivered')
+- SELECT COUNT(id) FROM reviews WHERE user_id=?
+- SELECT COUNT(id) FROM wishlists WHERE user_id=?
+- SELECT orders LIMIT 5 ORDER BY created_at DESC (recent orders preview)
+
+---
+
+### 3. User Settings / Edit Profile
+**Deskripsi:** Edit profil user (accessible from profile dropdown).
+
+**Fitur & UI:**
+- Form page/modal dengan tabs atau sections:
+  - **Account Info:**
+    - Username (read-only)
+    - Email (read-only, atau editable dengan verification)
+    - Full Name (editable)
+    - Phone (editable)
+    - Profile image upload (preview thumbnail)
+  - **Security:**
+    - Current password (password input)
+    - New password (password input, strength indicator)
+    - Confirm password (match validator)
+  - **Address Book:**
+    - Saved addresses list (for quick checkout)
+    - Add new address button → modal form
+    - Edit/delete address buttons per item
+  - **Preferences:**
+    - Email notifications checkbox (for orders, reviews)
+    - Newsletter subscription checkbox
 - Buttons: "Save Changes", "Cancel"
+- Success/error toast notifications
 
 **Design Elements:**
-- Modal form atau dedicated page
-- Read-only fields styling berbeda (lighter color)
+- Consistent form styling dengan design system
+- Tabs atau collapsible sections
+- Read-only fields dengan lighter styling
 - File upload preview
+- Password strength indicator (weak/medium/strong colors)
+- Form validation UI (red border invalid, green check valid)
 
 **Database Operasi:**
+- SELECT users WHERE id=? (pre-fill form)
 - UPDATE users SET full_name=?, phone=?, profile_image=? WHERE id=?
-- Jika password: UPDATE users SET password=HASH(?) WHERE id=?
+- UPDATE users SET password=HASH(?) WHERE id=? (if password change)
+- SELECT addresses FROM user_addresses WHERE user_id=? (if implemented)
+- INSERT INTO user_addresses (user_id, address, city, province, zip, phone) (add address)
 
 ---
 
-### 3. My Orders
-**Deskripsi:** Riwayat pesanan user.
+### 4. My Orders
+**Deskripsi:** Riwayat semua pesanan user dengan filter & sorting.
 
 **Fitur & UI:**
-- Filter sidebar: Status (All/Pending/Paid/Processing/Shipped/Delivered/Cancelled), Date range
-- Sort buttons: Newest, Oldest, Amount high-to-low
-- Orders table:
-  - Kolom: Order number, Date, Amount, Status badge (color-coded), Actions
+- Header dengan:
+  - "My Orders" title
+  - Filter sidebar (collapsible di mobile):
+    - Status filter (All/Pending/Paid/Processing/Shipped/Delivered/Cancelled)
+    - Date range picker (from-to)
+  - Sort dropdown (Newest, Oldest, Amount High-to-Low)
+- Orders table/card list:
+  - For table: Kolom: Order number, Date, Amount, Status badge, Item count, Actions
+  - For card list (mobile): card display dengan info summary
+  - Status badge color-coded
   - View detail button
-  - Cancel button (jika pending)
+  - Cancel button (jika status=pending, with confirmation)
   - Report issue button
-- Pagination (10-20 items)
+- Pagination (10-20 items per page)
+- Empty state (if no orders)
 
 **Design Elements:**
-- Status badges color-coded (pending=yellow, paid=blue, processing=orange, shipped=purple, delivered=green, cancelled=gray)
-- Responsive table layout
-- Filter panel collapsible di mobile
+- Status badges: pending=yellow, paid=blue, processing=orange, shipped=purple, delivered=green, cancelled=gray
+- Responsive table dengan horizontal scroll on mobile
+- Filter panel glassmorphic
+- Action buttons dengan hover effects
+- Mobile: card-based list layout
 
 **Database Operasi:**
 - SELECT orders, count(order_items) WHERE user_id=?
-- Filter status & date
+- Filter: status, DATE(created_at) BETWEEN ? AND ?
 - GROUP BY order_id
+- ORDER BY created_at DESC / final_total DESC
+- LIMIT + OFFSET pagination
 
 ---
 
-### 4. Order Detail
-**Deskripsi:** Detail order lengkap dengan timeline.
+### 5. Order Detail
+**Deskripsi:** Detail lengkap satu pesanan dengan timeline & informasi pembayaran.
 
 **Fitur & UI:**
-- Order header: order number, date, status badge, tracking number (jika shipped)
-- Items table: book image, title, author, qty, unit_price, subtotal
-- Pricing breakdown: Subtotal, Tax, Shipping, Grand Total
-- Shipping info: address display, tracking link
-- Payment info: method, status badge, paid_at timestamp
-- Order timeline: created → paid → processing → shipped → delivered
-- Buttons: "Download Invoice", "Track Shipment", "Report Issue", "Leave Review" (jika delivered)
+- Order header section:
+  - Order number (large display)
+  - Order date
+  - Status badge (color-coded, large)
+  - Tracking number (jika shipped)
+  - Download Invoice button (PDF)
+- Items section (table/list):
+  - Kolom: Book image, title, author, qty, unit_price, subtotal
+  - Each item card dengan book preview
+- Pricing breakdown (card):
+  - Subtotal display
+  - Tax 11% display
+  - Shipping cost display
+  - Grand Total (highlighted)
+- Shipping info card:
+  - Recipient name & phone
+  - Full shipping address
+  - Tracking link (jika available)
+  - Estimated delivery date (jika shipped)
+- Payment info card:
+  - Payment method (Bank Transfer / Credit Card / E-Wallet)
+  - Payment status badge
+  - Paid at timestamp
+  - Transaction ID (jika available)
+- Order timeline (vertical):
+  - Order Created → Paid → Processing → Shipped → Delivered
+  - Each step dengan timestamp
+  - Current status highlighted
+- Action buttons:
+  - "Track Shipment" (jika shipped, opens tracking portal)
+  - "Report Issue" (contact admin)
+  - "Leave Review" button (jika status=delivered)
+  - "Reorder" button (quick add to cart)
 
 **Design Elements:**
-- Timeline visualization (vertical/horizontal)
 - Card-based layout sections
 - Color-coded status badges
-- Print-friendly styling untuk invoice
+- Timeline visualization dengan step indicator
+- Print-friendly styling (no blur/transparency for invoice)
+- Mobile responsive: stacked sections
 
 **Database Operasi:**
-- SELECT orders JOIN users, payments WHERE order_id=? AND user_id=?
+- SELECT orders JOIN users, payments WHERE order_id=? AND user_id=? AND deleted_at IS NULL
 - SELECT order_items JOIN books WHERE order_id=?
+- Display order status timeline (derived from orders.status & timestamps)
 
 ---
 
-### 5. Checkout
-**Deskripsi:** Multi-step checkout process.
+### 6. Checkout (Multi-Step)
+**Deskripsi:** Multi-step checkout dengan cart review, shipping, payment method selection.
 
 **Fitur & UI:**
-- Step 1: Review cart (dari LOCAL STORAGE)
-  - Items table, dapat modify qty/remove
-  - Total display
-  - Next button
-- Step 2: Shipping address
-  - Form: nama, alamat, kota, provinsi, kode pos, telepon
-  - Save address checkbox (auto-fill next time)
-  - Shipping method select (Standard/Express/Overnight)
-  - Next button
-- Step 3: Payment method
-  - Radio buttons: Bank Transfer, Credit Card, E-Wallet
-  - Show rekening (if bank transfer)
-  - Next button
-- Step 4: Confirmation
-  - Order number display (ORD-YYYYMMDDHHMMSS)
-  - Items summary
-  - Total display
-  - Bank details (if bank transfer)
-  - Guidance text
+- Step indicator bar (Step 1/2/3/4, progress visualization)
+- **Step 1: Review Cart**
+  - Items table dari LOCAL STORAGE:
+    - Kolom: Book image, title, author, price, qty (++/-- buttons), subtotal, remove button
+    - Update qty immediate dengan live calculation
+    - Remove item confirmation
+  - Cart summary panel:
+    - Subtotal calculation
+    - Tax 11% (auto-calc)
+    - Shipping cost (default 50k, or calculated)
+    - Grand total highlight
+  - Navigation: "Continue Shopping" link, "Next" button
+- **Step 2: Shipping Address**
+  - Use saved address dropdown (jika ada)
+  - Or enter new address:
+    - Full name input
+    - Address input
+    - City dropdown
+    - Province dropdown
+    - Zip code input
+    - Phone number input
+  - Save address checkbox (for next order)
+  - Shipping method select:
+    - Standard (3-5 days, free)
+    - Express (1-2 days, +30k)
+    - Overnight (same day, +50k)
+  - Navigation: "Previous" button, "Next" button
+- **Step 3: Payment Method**
+  - Radio buttons untuk method selection:
+    - Bank Transfer (show bank details preview)
+    - Credit Card (show preview)
+    - E-Wallet (show methods list)
+  - Method details display:
+    - For bank transfer: show account info, amount
+    - For credit card: show form preview
+    - For e-wallet: show supported wallets
+  - Navigation: "Previous" button, "Place Order" button
+- **Step 4: Order Confirmation**
+  - Success message/badge
+  - Order number display (large, ORD-YYYYMMDDHHMMSS)
+  - Order summary: items count, total amount
+  - Shipping to: address display
+  - Payment method used
+  - Next steps guidance text:
+    - For bank transfer: "Transfer ke nomor rekening berikut..."
+    - For other methods: "Silakan lanjutkan di payment gateway..."
+  - Buttons: "View Order", "Continue Shopping"
 
 **Design Elements:**
-- Step indicator/progress bar
-- Form validation UI
-- Stepper navigation (Previous/Next)
-- Confirmation page dengan success styling
+- Step indicator dengan progress bar
+- Form validation UI (red error messages, green checkmarks)
+- Stepper navigation dengan Previous/Next buttons
+- Summary panel sticky on desktop, full-width on mobile
+- Confirmation page dengan success styling (green accents)
+- Modal atau dedicated page layout
 
 **Database Operasi:**
-- Validasi: SELECT books.stock, books.price untuk setiap item
-- INSERT orders, order_items, payments
-- Clear LOCAL STORAGE cartItems
+- Validasi sebelum checkout:
+  - SELECT books.stock, books.price WHERE book_id IN (cart items)
+  - Validate stok availability
+- Insert order:
+  - INSERT INTO orders (order_number, user_id, status='pending', total_price, tax_amount, shipping_cost, final_total, shipping_address, ...)
+  - INSERT INTO order_items (order_id, book_id, quantity, unit_price, subtotal) untuk setiap item
+  - INSERT INTO payments (order_id, payment_method, amount, status='pending')
+- Clear LOCAL STORAGE cartItems setelah order sukses
 
 ---
 
-### 6. Payment Status
-**Deskripsi:** Poll & display payment status real-time.
+### 7. Payment Status / Real-Time Polling
+**Deskripsi:** Halaman status pembayaran dengan polling real-time.
 
 **Fitur & UI:**
-- Bank transfer section (jika method=bank_transfer):
-  - Bank account number display + copy button
-  - Amount to transfer
-  - Upload proof file input
-  - Status text: "Waiting for confirmation"
-- Credit card section:
-  - Redirect ke payment gateway
-  - Show status dari gateway
-  - Auto-redirect jika sukses
-- E-Wallet section:
-  - QR code display atau app link
-  - Poll status sampai confirmed
+- Order info header (order number, date, amount)
+- Payment method specific section:
+  - **Bank Transfer:**
+    - Bank account number display + copy button
+    - Amount to transfer highlight
+    - Upload proof/receipt file input
+    - Status message: "Waiting for confirmation"
+    - Countdown timer: "Auto-confirm in XX minutes"
+  - **Credit Card:**
+    - Redirect ke payment gateway (Midtrans/Xendit)
+    - Status display dari gateway
+    - Auto-redirect jika payment sukses
+    - Retry button jika failed
+  - **E-Wallet:**
+    - QR code display (untuk scan)
+    - Atau app link button
+    - Poll status real-time dengan spinner/loading
+    - Auto-redirect saat confirmed
 - Status timeline visualization:
-  - Pending (yellow) → Received (green) → Processing → Shipped → Delivered
+  - Pending (yellow, animated pulse)
+  - Confirmed/Received (green, checkmark)
+  - Processing (blue, clock icon)
+  - Shipped (purple, truck icon)
+  - Delivered (green, box icon)
+- Countdown timer (untuk auto-cancel unpaid orders, typically 24 hours)
+- Help section: "Butuh bantuan?" link ke support
 
 **Design Elements:**
-- Clear step-by-step guidance
-- Status badges color-coded
-- Copy button icon untuk nomor rekening
-- Countdown/loading indicator untuk polling
+- Clear visual status indicators
+- Color-coded badges (yellow/green/blue/purple)
+- Copy button untuk bank account
+- Loading spinner untuk polling
+- Animated pulse untuk pending status
+- Mobile responsive
 
 **Database Operasi:**
 - SELECT payments WHERE order_id=?
-- Poll payments.status every 5-10 detik
+- SELECT orders WHERE id=?
+- Poll payments.status every 5-10 seconds
+- Saat status berubah ke 'paid' → trigger payment confirmation backend process
 
 ---
 
-### 7. Payment Confirmation (Auto-triggered)
-**Deskripsi:** Backend process saat payment dikonfirmasi (auto-triggered, no user UI).
+### 8. Payment Confirmation (Auto-Triggered Backend)
+**Deskripsi:** Backend process saat payment dikonfirmasi (no user UI).
 
-**Fitur Sistem:**
+**Fitur Sistem (Backend Only):**
 - Triggered saat payments.status → 'paid' (dari admin verify atau gateway callback)
 - Update orders.status → 'paid'
-- Kurangi stok: books.stock -= quantity per item
-- Insert transaction log
-- Email notification ke user
+- Decrement stok: books.stock -= quantity per setiap item
+- Insert transaction log untuk audit
+- Send email notification ke user dengan order summary
+- Frontend auto-redirect ke order detail page atau success page
 
 **Database Operasi:**
-- UPDATE payments SET status='paid', paid_at=NOW()
-- UPDATE orders SET status='paid'
-- UPDATE books SET stock=stock-quantity (per item)
-- INSERT transaction_history tipe 'purchase'
+- UPDATE payments SET status='paid', paid_at=NOW(), transaction_id=? WHERE order_id=?
+- UPDATE orders SET status='paid', updated_at=NOW() WHERE id=?
+- UPDATE books SET stock=stock-? WHERE id IN (SELECT book_id FROM order_items WHERE order_id=?)
+- INSERT INTO transaction_history (order_id, user_id, description='Purchase Order #...', amount, transaction_type='purchase', created_at=NOW())
+- Send email trigger (async job)
 
 ---
 
-### 8. Review Buku
-**Deskripsi:** Form review untuk buku yang sudah delivered.
+### 9. Review Buku
+**Deskripsi:** Form review untuk buku yang sudah diterima.
 
 **Fitur & UI:**
-- Star rating selector (1-5, clickable stars)
-- Review title input (optional)
-- Comment textarea (min 10 char)
-- Photo upload (optional, multiple files)
-- Buttons: "Submit", "Cancel"
-- Validation: rating required, comment min 10 char
-- Success message
+- Header: "Review [Book Title]" by [Author]
+- Form fields:
+  - Star rating selector (1-5, clickable stars dengan hover preview)
+  - Review title input (text, optional, placeholder: "Judul review Anda")
+  - Comment textarea (min 10 char, char counter, placeholder: "Bagikan pengalaman Anda...")
+  - Photo upload (file input, optional, multiple, preview thumbnails)
+  - Buttons: "Submit Review", "Cancel"
+- Validation display:
+  - Rating required message (jika belum dipilih)
+  - Comment min 10 char warning (live char count)
+  - Success message setelah submit
+- Restriction message (jika user belum membeli atau status != delivered)
 
 **Design Elements:**
-- Star selector dengan hover preview
-- Character count untuk comment
-- Image preview before upload
+- Star selector dengan 5-point size, hover color change
+- Character counter di bawah textarea
+- Image preview thumbnails sebelum upload
+- Form validation styling
+- Success toast notification
+- Modal atau dedicated page
 
 **Database Operasi:**
 - Validasi: SELECT COUNT FROM orders JOIN order_items WHERE user_id=?, book_id=?, status='delivered'
-- INSERT reviews (user_id, book_id, rating, comment, is_approved=TRUE)
-- Auto-calc: UPDATE books SET rating_average, rating_count
+- INSERT INTO reviews (user_id, book_id, rating, comment, photo_urls=?, is_approved=TRUE, created_at=NOW())
+- Auto-calculate dan UPDATE books:
+  - SET rating_average = (SELECT AVG(rating) FROM reviews WHERE book_id=? AND is_approved=TRUE AND deleted_at IS NULL)
+  - SET rating_count = (SELECT COUNT(*) FROM reviews WHERE book_id=? AND is_approved=TRUE AND deleted_at IS NULL)
+  - WHERE id=?
 
 ---
 
-### 9. Wishlist
-**Deskripsi:** Daftar buku favorit user.
+### 10. Wishlist
+**Deskripsi:** Grid daftar buku favorit dengan actions.
 
 **Fitur & UI:**
-- Header: "My Wishlist" + item count
-- Empty state display (jika kosong)
-- Wishlist grid (seperti katalog):
-  - Card: image, title, author, price, rating, "Add to Cart", "Remove", "View Detail" buttons
-  - Price badge (show discount % if promo)
-- Sort options: Recently added, Price high-to-low, Rating high-to-low
-- Bulk actions: "Add all to cart" (mass add), "Clear wishlist"
+- Header: "My Wishlist" + item count badge
+- Empty state display (jika kosong, dengan "Continue Shopping" button)
+- Wishlist grid (4 kolom responsive, same as home):
+  - Book cards: image, title, author, price, rating, category badge
+  - "Add to Cart" button
+  - "Remove from Wishlist" button (X icon)
+  - "View Detail" link
+  - Price highlight, discount % badge (jika ada promo)
+- Sort options buttons:
+  - Recently Added
+  - Price High-to-Low
+  - Price Low-to-High
+  - Rating High-to-Low
+- Bulk actions:
+  - "Add All to Cart" button (mass add semua items)
+  - "Clear Wishlist" button (with confirmation)
+- Pagination atau infinite scroll
 
 **Design Elements:**
-- Consistent card styling dengan katalog
-- Hover effects
-- Price highlight styling
+- Consistent card styling dengan home page
+- Hover animations (scale, shadow)
+- "Remove" button styling (subtle, hover highlight)
+- Bulk action buttons prominent
+- Mobile responsive grid
 
 **Local Storage:**
 - `cartItems`: update saat "Add to Cart" dari wishlist
 
 **Database Operasi:**
-- SELECT wishlists JOIN books LEFT JOIN categories WHERE user_id=?
-- DELETE FROM wishlists WHERE user_id=?, book_id=? (single)
+- SELECT wishlists JOIN books LEFT JOIN categories WHERE user_id=? AND books.deleted_at IS NULL AND books.is_active=TRUE
+- ORDER BY wishlists.created_at DESC (atau sorting parameter)
+- DELETE FROM wishlists WHERE user_id=? AND book_id=? (remove single)
 - DELETE FROM wishlists WHERE user_id=? (clear all)
 
 ---
 
-### 10. Contact / Support
-**Deskripsi:** Komunikasi user dengan admin.
+### 11. Contact / Support
+**Deskripsi:** Halaman komunikasi user dengan admin.
 
 **Fitur & UI:**
-- Contact form:
-  - Subject dropdown (atau text)
-  - Message textarea
-  - File attachment input (optional)
+- Contact form section (top):
+  - Subject dropdown (pilihan: "General Question", "Order Issue", "Product Inquiry", "Bug Report", "Other")
+  - Message textarea (placeholder: "Jelaskan pertanyaan Anda...")
+  - File attachment input (optional, image/document support)
   - Submit button
-- Message history (chat-like):
-  - List user messages + admin replies
-  - Status badges: unread / read / replied
-  - Timestamp, expandable detail
-- FAQ section (static content)
+  - Reset button
+- Message history section (below):
+  - "Your Messages" header + count
+  - Message list (chat-like layout):
+    - User message bubble (left side, blue/white)
+    - Admin reply bubble (right side, gray, "Admin Support" label)
+    - Status indicator: unread icon / "replied" badge
+    - Timestamp per message
+    - Expandable/collapsible per thread
+  - Empty state (if no messages)
+  - Filter tabs: All / Unread / Replied
+- FAQ section (collapsible accordion):
+  - Common questions dengan answers
+  - Search bar untuk filter FAQ
+- Live chat indicator (jika ada agent available)
 
 **Design Elements:**
-- Message bubble layout (user left, admin right)
-- Status indicator next to message
-- Timestamp formatting
+- Message bubble layout (chat-like UX)
+- Status badges (unread=orange, replied=green)
+- Timestamp formatting (e.g., "2 hours ago", "Nov 27, 2025")
+- Form styling consistent dengan design system
+- Responsive message layout
+- Accordion untuk FAQ
 
 **Database Operasi:**
-- INSERT contact_messages (user_id, subject, message, status='unread')
-- SELECT contact_messages WHERE user_id=?
-- UPDATE contact_messages SET admin_reply=?, status='replied' WHERE id=?
+- INSERT INTO contact_messages (user_id, subject, message, attachments=?, status='unread', created_at=NOW())
+- SELECT contact_messages WHERE user_id=? ORDER BY created_at DESC
+- UPDATE contact_messages SET status='read' WHERE id=? (when user view)
+- UPDATE contact_messages SET admin_reply=?, status='replied', updated_at=NOW() WHERE id=? (admin reply, backend trigger)
 
 ---
 
 ## 🔧 HALAMAN ADMIN (Login Required + role='admin')
 
 ### A1. Admin Dashboard
-**Deskripsi:** Analytics dashboard dengan metrics & charts.
+**Deskripsi:** Analytics dashboard dengan metrics & interactive charts (MUI X Charts).
 
 **Fitur & UI:**
-- Key metrics cards (4 grid):
-  - Today's orders count
-  - Today's revenue total
-  - Total active customers
-  - Pending payments count
-- Charts section:
-  - Monthly revenue trend (line chart)
-  - Top 10 best sellers (bar chart)
-  - Order status breakdown (pie chart)
-  - Payment method usage (pie chart)
-- Recent orders table (link to detail)
-- Pending reviews widget (approve/reject buttons)
+- Key metrics cards (4-column grid, responsive):
+  - **Today's Orders** card:
+    - Title: "Today's Orders"
+    - Big number display: COUNT(orders WHERE DATE=TODAY)
+    - Icon: ShoppingCart icon
+    - Trend indicator: +X% vs yesterday (green/red arrow)
+    - Background: Glassmorphic, indigo accent
+  - **Today's Revenue** card:
+    - Title: "Today's Revenue"
+    - Big number display: SUM(orders.final_total WHERE DATE=TODAY) dengan currency format (Rp)
+    - Icon: DollarSign icon
+    - Trend indicator: +X% vs yesterday
+    - Background: Glassmorphic, emerald accent
+  - **Active Customers** card:
+    - Title: "Active Customers"
+    - Big number display: COUNT(DISTINCT orders.user_id WHERE status IN ('paid','delivered'))
+    - Icon: Users icon
+    - Trend indicator: +X new customers this week
+    - Background: Glassmorphic, pink accent
+  - **Pending Payments** card:
+    - Title: "Pending Payments"
+    - Big number display: COUNT(payments WHERE status='pending')
+    - Icon: Clock icon
+    - Action link: "View Pending" → Manage Payments page
+    - Background: Glassmorphic, orange accent
+
+- Charts section (below metrics):
+  - **Monthly Revenue Trend** (MUI X Charts LineChart):
+    - Title: "Revenue Trend (30 days)"
+    - X-axis: Date (formatted as "Nov 1", "Nov 2", etc)
+    - Y-axis: Revenue amount
+    - Line: smooth curve, color=indigo
+    - Hover tooltip dengan date + amount
+    - Legend dengan "Revenue" label
+    - Height: 300px
+  - **Top 10 Best Sellers** (MUI X Charts BarChart):
+    - Title: "Top 10 Best Selling Books"
+    - X-axis: Book titles (truncated jika panjang)
+    - Y-axis: Units sold
+    - Bar: horizontal atau vertical, color=emerald
+    - Hover tooltip dengan book title + count
+    - Height: 300px
+  - **Order Status Breakdown** (MUI X Charts PieChart):
+    - Title: "Order Status Distribution"
+    - Segments: pending (yellow), paid (blue), processing (orange), shipped (purple), delivered (green), cancelled (gray)
+    - Hover tooltip dengan status + count + percentage
+    - Legend: below chart
+    - Size: 250px
+  - **Payment Method Usage** (MUI X Charts DonutChart):
+    - Title: "Payment Methods"
+    - Segments: Bank Transfer, Credit Card, E-Wallet (masing-masing warna berbeda)
+    - Center: total transactions number
+    - Hover tooltip dengan method + count
+    - Legend: right side
+    - Size: 250px
+
+- Recent orders table section:
+  - Title: "Recent Orders"
+  - Kolom: Order number, Customer name, Amount, Status badge, Date, Action (view detail link)
+  - Max 5 rows displayed
+  - "View All Orders" link di bawah
+
+- Pending reviews widget (card):
+  - Title: "Pending Reviews"
+  - Count display: X reviews awaiting approval
+  - Quick stats: Average rating
+  - "Manage Reviews" button → Manage Reviews page
+  - Small list: last 3 pending reviews preview
 
 **Design Elements:**
-- Card-based metrics dengan icons & big numbers
-- Interactive charts (hover data labels)
-- Color-coded category indicators
-- Real-time data feel dengan refresh indicators
+- Glassmorphic metric cards (backdrop blur, white/5-10% border)
+- MUI X Charts styling: consistent dengan dark theme
+- Color-coded metrics (indigo/emerald/pink/orange)
+- Interactive charts (hover labels, clickable legend)
+- Card-based layout sections dengan gap spacing
+- Responsive: 2x2 metrics grid on tablet, 1x4 atau 2x2 on mobile
+- Charts responsive dengan container width
 
 **Database Operasi:**
-- COUNT, SUM dari orders, payments (WHERE DATE = TODAY)
-- AGGREGATE orders, order_items, books GROUP BY date/product/category
-- SELECT pending reviews
+- SELECT COUNT(id) FROM orders WHERE DATE(created_at)=CURDATE() AND status IN ('paid','processing','shipped','delivered')
+- SELECT SUM(final_total) FROM orders WHERE DATE(created_at)=CURDATE() AND status IN ('paid','delivered')
+- SELECT COUNT(DISTINCT user_id) FROM orders WHERE status IN ('paid','delivered')
+- SELECT COUNT(id) FROM payments WHERE status='pending'
+- Revenue trend: SELECT DATE(created_at) as date, SUM(final_total) as revenue FROM orders WHERE status IN ('paid','delivered') AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY DATE(created_at) ORDER BY date ASC
+- Top sellers: SELECT b.title, COUNT(oi.id) as sold FROM order_items oi JOIN books b ON oi.book_id=b.id GROUP BY b.id ORDER BY sold DESC LIMIT 10
+- Status breakdown: SELECT status, COUNT(id) FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY status
+- Payment methods: SELECT payment_method, COUNT(id) FROM payments WHERE status='paid' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY payment_method
+- Recent orders: SELECT orders.id, order_number, final_total, status, created_at, users.full_name FROM orders JOIN users ON orders.user_id=users.id ORDER BY created_at DESC LIMIT 5
+- Pending reviews: SELECT r.id, r.rating, r.comment, b.title, u.full_name FROM reviews r JOIN books b ON r.book_id=b.id JOIN users u ON r.user_id=u.id WHERE r.is_approved=FALSE ORDER BY r.created_at DESC LIMIT 3
 
 ---
 
@@ -544,44 +811,17 @@
 - Hover: scale 1.02, color transitions (150ms)
 - Loading: pulse indicators, smooth transitions
 
-**Notes**
-
-```
-Pokoknya design di samakan dengan yang sudah ada di dashboard.tsx, terapkan secara KONSISTEN YA!
-```
 ---
 
-Selain itu:
-
-### Struktur Folder dan File (Arsitektur Project)
-Buatkan struktur folder dan file secara profesional dan scalable untuk project ini. Terapkan pola arsitektur yang bersih dengan memisahkan fungsi berdasarkan peran, meliputi:
-
-- **components** untuk UI  
-- **hooks** untuk reusable logic  
-- **services** untuk business logic atau API calls  
-- **utils** untuk pure helper functions  
-- **lib** untuk konfigurasi atau inisialisasi library eksternal  
-- **store** atau **context** untuk global state management  
-- **config** untuk konfigurasi environment atau constant global  
-- **types** atau **interfaces** untuk definisi tipe (jika diperlukan)  
-- **assets** untuk file statis  
-
-Saat saya meminta penambahan fitur atau fungsi baru, sesuaikan file dan lokasinya secara otomatis berdasarkan kategori terbaiknya, berikan alasan penempatannya, dan tampilkan struktur final yang rapi. Pastikan seluruh output konsisten, mudah dibaca, tidak berlebihan, dan mengikuti praktik senior engineer yang umum digunakan pada project modern.
-
----
-
-Pastikan seluruh hasil akhir disusun secara sistematis, jelas, dan layak dijadikan blueprint utama untuk pengembangan aplikasi e-commerce toko buku modern berbasis Laravel.
-
----
+## 📁 Struktur Folder & Arsitektur Project (Next.js + TypeScript)
 
 ## 🔄 FLOW TRANSAKSI SINGKAT
 
-1. **Browse (Home/Katalog):** SELECT books + categories, display featured/filtered
+1. **Browse (Home/Katalog):** SELECT books + categories, display featured/filtered grid
 2. **Add to Cart:** Save to LOCAL STORAGE (cartItems array)
 3. **Checkout:** Validate books.stock → INSERT orders + order_items + payments
 4. **Payment:** Poll payments.status → Saat 'paid' → UPDATE books.stock, INSERT transaction_history
 5. **Delivered:** Show review form → INSERT reviews → UPDATE books.rating
-6. **Admin Dashboard:** AGGREGATE data dari orders, order_items, payments untuk laporan
+6. **Admin Dashboard:** AGGREGATE data dari orders, order_items, payments dengan MUI X Charts untuk visualisasi
 
 ---
-

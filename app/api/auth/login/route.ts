@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate JWT token
-    const token = signToken({
+    // Generate JWT token (now async with jose)
+    const token = await signToken({
       userId: user.id,
       email: user.email,
       role: user.role,
@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user;
 
-    return NextResponse.json({
+    // Create response with cookie
+    const response = NextResponse.json({
       success: true,
       data: {
         user: userWithoutPassword,
@@ -65,6 +66,17 @@ export async function POST(request: NextRequest) {
       },
       message: 'Login successful!',
     });
+
+    // Set httpOnly cookie for authentication
+    response.cookies.set('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     
